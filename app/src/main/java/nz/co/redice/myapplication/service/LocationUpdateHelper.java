@@ -1,15 +1,12 @@
 package nz.co.redice.myapplication.service;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -19,7 +16,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
-class LocationUpdateHelper {
+public class LocationUpdateHelper {
 
     private Context mContext;
     private OnNewLocationListener mLocationListener;
@@ -54,7 +51,7 @@ class LocationUpdateHelper {
     private LocationCallback mLocationCallback;
 
 
-    interface OnNewLocationListener {
+    public interface OnNewLocationListener {
         void onNewLocation(Location location);
 
     }

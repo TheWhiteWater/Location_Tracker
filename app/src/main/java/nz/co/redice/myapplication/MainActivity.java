@@ -43,7 +43,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.google.android.material.snackbar.Snackbar;
 
 import nz.co.redice.myapplication.databinding.ActivityMainBinding;
-import nz.co.redice.myapplication.service.LocationUpdatesService;
+import nz.co.redice.myapplication.service.LocationService;
 import nz.co.redice.myapplication.service.Utils;
 
 import static nz.co.redice.myapplication.service.Common.ACTION_BROADCAST;
@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     private MyReceiver myReceiver;
 
     // A reference to the service used to get location updates.
-    private LocationUpdatesService mService = null;
+    private LocationService mService = null;
 
     // Tracks the bound state of the service.
     private boolean mBound = false;
@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            LocationUpdatesService.LocalBinder binder = (LocationUpdatesService.LocalBinder) service;
+            LocationService.LocalBinder binder = (LocationService.LocalBinder) service;
             mService = binder.getService();
             mBound = true;
         }
@@ -162,7 +162,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
         // Bind to the service. If the service is in foreground mode, this signals to the service
         // that since this activity is in the foreground, the service can exit foreground mode.
-        bindService(new Intent(this, LocationUpdatesService.class), mServiceConnection,
+        bindService(new Intent(this, LocationService.class), mServiceConnection,
                 Context.BIND_AUTO_CREATE);
     }
 
@@ -200,9 +200,11 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     private boolean checkPermissions() {
         return PackageManager.PERMISSION_GRANTED == ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION);
+        // TODO: 7/12/2020 COARSE LOCATION ???
     }
 
-    private void requestPermissions() {
+    // TODO: 7/12/2020 https://developer.android.com/training/permissions/requesting
+    public void requestPermissions() {
         boolean shouldProvideRationale =
                 ActivityCompat.shouldShowRequestPermissionRationale(this,
                         Manifest.permission.ACCESS_FINE_LOCATION);
@@ -236,6 +238,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         }
     }
 
+
+    // TODO: 7/12/2020 https://developer.android.com/training/permissions/requesting
     /**
      * Callback received when a permissions request has been completed.
      */
@@ -278,7 +282,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     }
 
     /**
-     * Receiver for broadcasts sent by {@link LocationUpdatesService}.
+     * Receiver for broadcasts sent by {@link LocationService}.
      */
     private class MyReceiver extends BroadcastReceiver {
         @Override
