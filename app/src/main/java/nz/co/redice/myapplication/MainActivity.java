@@ -44,6 +44,8 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.android.material.snackbar.Snackbar;
 
+import nz.co.redice.myapplication.databinding.ActivityMainBinding;
+
 /**
  * The only activity in this sample.
  * <p>
@@ -114,12 +116,14 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             mBound = false;
         }
     };
+    private ActivityMainBinding mBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         myReceiver = new MyReceiver();
-        setContentView(R.layout.activity_main);
+        mBinding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(mBinding.getRoot());
 
         // Check that the user hasn't revoked permissions by going to Settings.
         if (Utils.requestingLocationUpdates(this)) {
@@ -135,10 +139,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         PreferenceManager.getDefaultSharedPreferences(this)
                 .registerOnSharedPreferenceChangeListener(this);
 
-        mRequestLocationUpdatesButton = (Button) findViewById(R.id.launch_location_updates_button);
-        mRemoveLocationUpdatesButton = (Button) findViewById(R.id.cancel_location_updates_button);
-
-        mRequestLocationUpdatesButton.setOnClickListener(new View.OnClickListener() {
+        mBinding.launchLocationUpdatesButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (!checkPermissions()) {
@@ -149,7 +150,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             }
         });
 
-        mRemoveLocationUpdatesButton.setOnClickListener(new View.OnClickListener() {
+
+        mBinding.cancelLocationUpdatesButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 mService.removeLocationUpdates();
@@ -300,11 +302,11 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     private void setButtonsState(boolean requestingLocationUpdates) {
         if (requestingLocationUpdates) {
-            mRequestLocationUpdatesButton.setEnabled(false);
-            mRemoveLocationUpdatesButton.setEnabled(true);
+            mBinding.launchLocationUpdatesButton.setEnabled(false);
+            mBinding.cancelLocationUpdatesButton.setEnabled(true);
         } else {
-            mRequestLocationUpdatesButton.setEnabled(true);
-            mRemoveLocationUpdatesButton.setEnabled(false);
+            mBinding.launchLocationUpdatesButton.setEnabled(true);
+            mBinding.cancelLocationUpdatesButton.setEnabled(false);
         }
     }
 }
