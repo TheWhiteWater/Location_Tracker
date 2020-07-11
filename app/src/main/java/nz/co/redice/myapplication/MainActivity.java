@@ -27,14 +27,12 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -45,6 +43,11 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.google.android.material.snackbar.Snackbar;
 
 import nz.co.redice.myapplication.databinding.ActivityMainBinding;
+import nz.co.redice.myapplication.service.LocationUpdatesService;
+import nz.co.redice.myapplication.service.Utils;
+
+import static nz.co.redice.myapplication.service.Common.ACTION_BROADCAST;
+import static nz.co.redice.myapplication.service.Common.EXTRA_LOCATION;
 
 /**
  * The only activity in this sample.
@@ -95,10 +98,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     // Tracks the bound state of the service.
     private boolean mBound = false;
-
-    // UI elements.
-    private Button mRequestLocationUpdatesButton;
-    private Button mRemoveLocationUpdatesButton;
 
     // Monitors the state of the connection to the service.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -171,7 +170,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     protected void onResume() {
         super.onResume();
         LocalBroadcastManager.getInstance(this).registerReceiver(myReceiver,
-                new IntentFilter(LocationUpdatesService.ACTION_BROADCAST));
+                new IntentFilter(ACTION_BROADCAST));
     }
 
     @Override
@@ -194,11 +193,12 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         super.onStop();
     }
 
+
     /**
      * Returns the current state of the permissions needed.
      */
     private boolean checkPermissions() {
-        return  PackageManager.PERMISSION_GRANTED == ActivityCompat.checkSelfPermission(this,
+        return PackageManager.PERMISSION_GRANTED == ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION);
     }
 
@@ -283,7 +283,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     private class MyReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Location location = intent.getParcelableExtra(LocationUpdatesService.EXTRA_LOCATION);
+            Location location = intent.getParcelableExtra(EXTRA_LOCATION);
             if (location != null) {
                 Toast.makeText(MainActivity.this, Utils.getLocationText(location),
                         Toast.LENGTH_SHORT).show();
