@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nz.co.redice.myapplication;
+package nz.co.redice.myapplication.service;
 
 
 import android.content.Context;
@@ -24,16 +24,18 @@ import android.preference.PreferenceManager;
 import java.text.DateFormat;
 import java.util.Date;
 
-class Utils {
+import nz.co.redice.myapplication.R;
 
-    static final String KEY_REQUESTING_LOCATION_UPDATES = "requesting_location_updates";
+public class Utils {
+
+    public static final String KEY_REQUESTING_LOCATION_UPDATES = "requesting_location_updates";
 
     /**
      * Returns true if requesting location updates, otherwise returns false.
      *
      * @param context The {@link Context}.
      */
-    static boolean requestingLocationUpdates(Context context) {
+    public static boolean requestingLocationUpdates(Context context) {
         return PreferenceManager.getDefaultSharedPreferences(context)
                 .getBoolean(KEY_REQUESTING_LOCATION_UPDATES, false);
     }
@@ -53,7 +55,7 @@ class Utils {
      * Returns the {@code location} object as a human readable string.
      * @param location  The {@link Location}.
      */
-    static String getLocationText(Location location) {
+    public static String getLocationText(Location location) {
         return location == null ? "Unknown location" :
                 "(" + location.getLatitude() + ", " + location.getLongitude() + ")";
     }

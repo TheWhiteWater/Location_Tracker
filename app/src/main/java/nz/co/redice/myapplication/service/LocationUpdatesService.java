@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package nz.co.redice.myapplication;
+package nz.co.redice.myapplication.service;
 
 import android.app.ActivityManager;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.location.Location;
 import android.os.Binder;
-import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
@@ -35,7 +30,6 @@ import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.NotificationCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -45,6 +39,11 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+
+import static nz.co.redice.myapplication.service.Common.ACTION_BROADCAST;
+import static nz.co.redice.myapplication.service.Common.EXTRA_LOCATION;
+import static nz.co.redice.myapplication.service.Common.EXTRA_STARTED_FROM_NOTIFICATION;
+import static nz.co.redice.myapplication.service.Common.NOTIFICATION_ID;
 
 /**
  * A bound and started service that is promoted to a foreground service when location updates have
@@ -62,21 +61,11 @@ import com.google.android.gms.tasks.Task;
  */
 public class LocationUpdatesService extends Service {
 
-    private static final String PACKAGE_NAME =
-            "com.google.android.gms.location.sample.locationupdatesforegroundservice";
+
 
     private static final String TAG = LocationUpdatesService.class.getSimpleName();
 
-    /**
-     * The name of the channel for notifications.
-     */
-    private static final String CHANNEL_ID = "channel_01";
 
-    static final String ACTION_BROADCAST = PACKAGE_NAME + ".broadcast";
-
-    static final String EXTRA_LOCATION = PACKAGE_NAME + ".location";
-    private static final String EXTRA_STARTED_FROM_NOTIFICATION = PACKAGE_NAME +
-            ".started_from_notification";
 
     private final IBinder mBinder = new LocalBinder();
 
@@ -92,10 +81,6 @@ public class LocationUpdatesService extends Service {
     private static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
             UPDATE_INTERVAL_IN_MILLISECONDS / 2;
 
-    /**
-     * The identifier for the notification displayed for the foreground service.
-     */
-    private static final int NOTIFICATION_ID = 12345678;
 
     /**
      * Used to check whether the bound activity has really gone away and not unbound as part of an
@@ -104,7 +89,6 @@ public class LocationUpdatesService extends Service {
      */
     private boolean mChangingConfiguration = false;
 
-    private NotificationManager mNotificationManager;
 
     /**
      * Contains parameters used by {@link com.google.android.gms.location.FusedLocationProviderApi}.
@@ -128,6 +112,8 @@ public class LocationUpdatesService extends Service {
      */
     private Location mLocation;
 
+    private NotificationHelper mNotificationHelper;
+
     public LocationUpdatesService() {
     }
 
@@ -149,18 +135,8 @@ public class LocationUpdatesService extends Service {
         HandlerThread handlerThread = new HandlerThread(TAG);
         handlerThread.start();
         mServiceHandler = new Handler(handlerThread.getLooper());
-        mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        mNotificationHelper = new NotificationHelper(this);
 
-        // Android O requires a Notification Channel.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = getString(R.string.app_name);
-            // Create the channel for the notification
-            NotificationChannel mChannel =
-                    new NotificationChannel(CHANNEL_ID, name, NotificationManager.IMPORTANCE_DEFAULT);
-
-            // Set the Notification Channel for the Notification Manager.
-            mNotificationManager.createNotificationChannel(mChannel);
-        }
     }
 
     @Override
@@ -224,7 +200,7 @@ public class LocationUpdatesService extends Service {
                 startForeground(NOTIFICATION_ID, getNotification());
             }
              */
-            startForeground(NOTIFICATION_ID, getNotification());
+            startForeground(NOTIFICATION_ID, mNotificationHelper.getNotification());
         }
         return true; // Ensures onRebind() is called when a client re-binds.
     }
@@ -267,45 +243,6 @@ public class LocationUpdatesService extends Service {
         }
     }
 
-    /**
-     * Returns the {@link NotificationCompat} used as part of the foreground service.
-     */
-    private Notification getNotification() {
-        Intent intent = new Intent(this, LocationUpdatesService.class);
-
-        CharSequence text = Utils.getLocationText(mLocation);
-
-        // Extra to help us figure out if we arrived in onStartCommand via the notification or not.
-        intent.putExtra(EXTRA_STARTED_FROM_NOTIFICATION, true);
-
-        // The PendingIntent that leads to a call to onStartCommand() in this service.
-        PendingIntent servicePendingIntent = PendingIntent.getService(this, 0, intent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-
-        // The PendingIntent to launch activity.
-        PendingIntent activityPendingIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, MainActivity.class), 0);
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-                .addAction(R.drawable.ic_launch, getString(R.string.launch_activity),
-                        activityPendingIntent)
-                .addAction(R.drawable.ic_cancel, getString(R.string.cancel_location_updates),
-                        servicePendingIntent)
-                .setContentText(text)
-                .setContentTitle(Utils.getLocationTitle(this))
-                .setOngoing(true)
-                .setPriority(Notification.PRIORITY_HIGH)
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setTicker(text)
-                .setWhen(System.currentTimeMillis());
-
-        // Set the Channel ID for Android O.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            builder.setChannelId(CHANNEL_ID); // Channel ID
-        }
-
-        return builder.build();
-    }
 
     private void getLastLocation() {
         try {
@@ -337,7 +274,7 @@ public class LocationUpdatesService extends Service {
 
         // Update notification content if running as a foreground service.
         if (serviceIsRunningInForeground(this)) {
-            mNotificationManager.notify(NOTIFICATION_ID, getNotification());
+            mNotificationHelper.showNotification();
         }
     }
 
@@ -356,7 +293,7 @@ public class LocationUpdatesService extends Service {
      * clients, we don't need to deal with IPC.
      */
     public class LocalBinder extends Binder {
-        LocationUpdatesService getService() {
+        public LocationUpdatesService getService() {
             return LocationUpdatesService.this;
         }
     }
