@@ -24,16 +24,9 @@ import android.content.res.Configuration;
 import android.location.Location;
 import android.os.Binder;
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.IBinder;
 import android.util.Log;
 
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
-import java.util.function.ToDoubleBiFunction;
-
-import static nz.co.redice.myapplication.service.Common.ACTION_BROADCAST;
-import static nz.co.redice.myapplication.service.Common.EXTRA_LOCATION;
 import static nz.co.redice.myapplication.service.Common.EXTRA_STARTED_FROM_NOTIFICATION;
 import static nz.co.redice.myapplication.service.Common.NOTIFICATION_ID;
 
@@ -66,13 +59,6 @@ public class LocationService extends Service implements LocationUpdateHelper.OnN
      */
     private boolean mChangingConfiguration = false;
 
-    private Handler mServiceHandler;
-
-//    /**
-//     * The current location.
-//     */
-//    private Location mLocation;
-
     private NotificationHelper mNotificationHelper;
     private LocationUpdateHelper mLocationHelper;
 
@@ -86,10 +72,6 @@ public class LocationService extends Service implements LocationUpdateHelper.OnN
         mNotificationHelper = new NotificationHelper(this);
 
         getLastLocation();
-
-//        HandlerThread handlerThread = new HandlerThread(TAG);
-//        handlerThread.start();
-//        mServiceHandler = new Handler(handlerThread.getLooper());
 
     }
 
@@ -159,10 +141,6 @@ public class LocationService extends Service implements LocationUpdateHelper.OnN
         return true; // Ensures onRebind() is called when a client re-binds.
     }
 
-    @Override
-    public void onDestroy() {
-//        mServiceHandler.removeCallbacksAndMessages(null);
-    }
 
     /**
      * Makes a request for location updates. Note that in this sample we merely log the
@@ -210,13 +188,6 @@ public class LocationService extends Service implements LocationUpdateHelper.OnN
     public void onNewLocation(Location location) {
         Log.i(TAG, "New location: " + location);
         // TODO: 7/12/2020 save locations into database
-//        mLocation = location;
-//
-//        // Notify anyone listening for broadcasts about the new location.
-//        Intent intent = new Intent(ACTION_BROADCAST);
-//        intent.putExtra(EXTRA_LOCATION, location);
-//        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
-
         // Update notification content if running as a foreground service.
         if (serviceIsRunningInForeground(this)) {
             mNotificationHelper.showNotification();

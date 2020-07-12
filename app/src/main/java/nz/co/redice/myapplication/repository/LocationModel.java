@@ -2,6 +2,7 @@ package nz.co.redice.myapplication.repository;
 
 import androidx.room.Embedded;
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 @Entity(tableName = "locations")
@@ -42,5 +43,16 @@ public class LocationModel {
     public LocationModel() {
     }
 
+    @Ignore
+    public LocationModel(Long date, CustomLocation customLocation1) {
+        this.date = date;
+        this.customLocation1 = customLocation1;
+    }
 
+    @Override
+    public String toString() {
+        return "date=" + date +
+                        ", latitude =" + customLocation1.latitude +
+                        ", longitude =" + customLocation1.longitude;
+    }
 }

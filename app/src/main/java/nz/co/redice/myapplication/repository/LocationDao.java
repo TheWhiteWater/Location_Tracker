@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.List;
 
 import io.reactivex.Observable;
+import io.reactivex.Single;
 
 @Dao
 public interface LocationDao {
@@ -19,19 +20,13 @@ public interface LocationDao {
     @Query("SELECT * FROM locations")
     LiveData<List<LocationModel>> getAllLocations();
 
-    @Query("SELECT * FROM locations where date = :date")
-    LiveData<List<LocationModel>> getLocationsByDate(Long date);
-
-    @Query("SELECT * FROM locations where uuid = :uuid")
-    Observable<LocationModel> getLocation(int uuid);
-
-    @Query("DELETE FROM locations where date = :date")
-    void deleteAllLocationOn(Long date);
-
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    void insertLocation(LocationModel locationModel);
+    Single<Void> insertLocation(LocationModel locationModel);
+
+    @Query("DELETE FROM locations WHERE uuid = :uuid")
+    Single<Void> deleteLocation(int uuid);
 
     @Query("DELETE FROM locations")
-    void deleteAllLocations();
+    Single<Void> deleteAllLocations();
 
 }

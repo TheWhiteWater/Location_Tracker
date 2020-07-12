@@ -1,36 +1,44 @@
 package nz.co.redice.myapplication.repository;
 
+import android.app.Application;
+
 import androidx.lifecycle.LiveData;
 
 import java.util.List;
 
-import io.reactivex.Completable;
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
 public class Repository {
 
-    private final LocationDao mDao;
+    private LocationDao mDao;
+    private LiveData<List<LocationModel>> allLocations;
 
-    public Repository(LocationDao dao) {
-        mDao = dao;
+    public Repository(Application application) {
+        Database database = Database.getInstance(application);
+        mDao = database.getDao();
+        allLocations = mDao.getAllLocations();
     }
 
-    public LiveData<List<LocationModel>> retrieveAllLocations (String category) {
-        return mDao.getAllLocations();
-    }
-
-    public LocationModel retrieveEntryById(int uuid) {
-        return (LocationModel) mDao.getLocation(uuid)
+    public void deleteAllLocations() {
+        mDao.deleteAllLocations()
                 .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe();
+    }
+
+    public void delete(int uuid) {
+        mDao.deleteLocation(uuid)
+                .subscribeOn(Schedulers.io())
+                .subscribe();
+    }
+
+    public void insert(LocationModel locationModel) {
+        mDao.insertLocation(locationModel)
+                .subscribeOn(Schedulers.io())
                 .subscribe();
     }
 
-    public void clearDatabase() {
-        Completable.fromAction(mDao::deleteAllLocations)
-                .subscribeOn(Schedulers.io())
-                .subscribe();
+    public LiveData<List<LocationModel>> getAllLocations() {
+        return allLocations;
     }
 
 }
