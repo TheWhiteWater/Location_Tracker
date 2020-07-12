@@ -30,6 +30,8 @@ import android.util.Log;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import java.util.function.ToDoubleBiFunction;
+
 import static nz.co.redice.myapplication.service.Common.ACTION_BROADCAST;
 import static nz.co.redice.myapplication.service.Common.EXTRA_LOCATION;
 import static nz.co.redice.myapplication.service.Common.EXTRA_STARTED_FROM_NOTIFICATION;
@@ -207,7 +209,7 @@ public class LocationService extends Service implements LocationUpdateHelper.OnN
 
     public void onNewLocation(Location location) {
         Log.i(TAG, "New location: " + location);
-
+        // TODO: 7/12/2020 save locations into database
 //        mLocation = location;
 //
 //        // Notify anyone listening for broadcasts about the new location.
