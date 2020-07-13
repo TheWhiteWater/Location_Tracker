@@ -28,7 +28,7 @@ public class LocationViewModel extends AndroidViewModel {
         mRepository.insert(new LocationModel(System.currentTimeMillis(),
                 new CustomLocation(location.getLatitude(), location.getLongitude())));
     }
-    public void deleteLocationById(int uuid) {
+    public void deleteLocation(int uuid) {
         mRepository.delete(uuid);
     }
 

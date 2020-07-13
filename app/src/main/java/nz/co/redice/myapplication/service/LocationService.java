@@ -23,7 +23,6 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.location.Location;
 import android.os.Binder;
-import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -67,12 +66,9 @@ public class LocationService extends Service implements LocationUpdateHelper.OnN
 
     @Override
     public void onCreate() {
-
         mLocationHelper = new LocationUpdateHelper(this, this);
         mNotificationHelper = new NotificationHelper(this);
-
         getLastLocation();
-
     }
 
     @Override
@@ -127,15 +123,6 @@ public class LocationService extends Service implements LocationUpdateHelper.OnN
         // do nothing. Otherwise, we make this service a foreground service.
         if (!mChangingConfiguration && Utils.requestingLocationUpdates(this)) {
             Log.i(TAG, "Starting foreground service");
-            /*
-            // TODO(developer). If targeting O, use the following code.
-//            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.O) {
-//                mNotificationManager.startServiceInForeground(new Intent(this,
-//                        LocationUpdatesService.class), NOTIFICATION_ID, getNotification());
-//            } else {
-                startForeground(NOTIFICATION_ID, getNotification());
-            }
-             */
             startForeground(NOTIFICATION_ID, mNotificationHelper.getNotification());
         }
         return true; // Ensures onRebind() is called when a client re-binds.
@@ -148,12 +135,12 @@ public class LocationService extends Service implements LocationUpdateHelper.OnN
      */
     public void requestLocationUpdates() {
         Log.i(TAG, "Requesting location updates");
-        Utils.setRequestingLocationUpdates(this, true);
+        Utils.setRequestingLocationUpdatesStatus(this, true);
         startService(new Intent(getApplicationContext(), LocationService.class));
         try {
             mLocationHelper.launchLocationUpdates();
         } catch (SecurityException unlikely) {
-            Utils.setRequestingLocationUpdates(this, false);
+            Utils.setRequestingLocationUpdatesStatus(this, false);
             Log.e(TAG, "Lost location permission. Could not request updates. " + unlikely);
         }
     }
@@ -166,10 +153,10 @@ public class LocationService extends Service implements LocationUpdateHelper.OnN
         Log.i(TAG, "Removing location updates");
         try {
             mLocationHelper.cancelLocationUpdates();
-            Utils.setRequestingLocationUpdates(this, false);
+            Utils.setRequestingLocationUpdatesStatus(this, false);
             stopSelf();
         } catch (SecurityException unlikely) {
-            Utils.setRequestingLocationUpdates(this, true);
+            Utils.setRequestingLocationUpdatesStatus(this, true);
             Log.e(TAG, "Lost location permission. Could not remove updates. " + unlikely);
         }
     }

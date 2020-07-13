@@ -35,9 +35,7 @@ class NotificationHelper {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             CharSequence name = mContext.getString(R.string.app_name);
             // Create the channel for the notification
-            NotificationChannel mChannel =
-                    new NotificationChannel(CHANNEL_ID, name, NotificationManager.IMPORTANCE_DEFAULT);
-
+            NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, name, NotificationManager.IMPORTANCE_DEFAULT);
             mChannel.setSound(null, null);
             // Set the Notification Channel for the Notification Manager.
             mNotificationManager.createNotificationChannel(mChannel);
@@ -50,7 +48,6 @@ class NotificationHelper {
      */
     Notification getNotification() {
         Intent intent = new Intent(mContext, LocationService.class);
-
 
         // Extra to help us figure out if we arrived in onStartCommand via the notification or not.
         intent.putExtra(EXTRA_STARTED_FROM_NOTIFICATION, true);

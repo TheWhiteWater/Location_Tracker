@@ -21,39 +21,15 @@ public class LocationUpdateHelper {
     private Context mContext;
     private OnNewLocationListener mLocationListener;
 
-    /**
-     * The desired interval for location updates. Inexact. Updates may be more or less frequent.
-     */
     private static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
-
-    /**
-     * The fastest rate for active location updates. Updates will never be more frequent
-     * than this value.
-     */
-    private static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
-            UPDATE_INTERVAL_IN_MILLISECONDS / 2;
-
-
-    /**
-     * Contains parameters used by {@link com.google.android.gms.location.FusedLocationProviderApi}.
-     */
+    private static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = UPDATE_INTERVAL_IN_MILLISECONDS / 2;
     private LocationRequest mLocationRequest;
-
-
-    /**
-     * Provides access to the Fused Location Provider API.
-     */
     private FusedLocationProviderClient mFusedLocationClient;
-
-    /**
-     * Callback for changes in location.
-     */
     private LocationCallback mLocationCallback;
 
 
     public interface OnNewLocationListener {
         void onNewLocation(Location location);
-
     }
 
     public LocationUpdateHelper(Context context, OnNewLocationListener listener) {
@@ -61,7 +37,6 @@ public class LocationUpdateHelper {
         mLocationListener = listener;
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(mContext);
-
 
         mLocationCallback = new LocationCallback() {
             @Override
@@ -74,9 +49,6 @@ public class LocationUpdateHelper {
         createLocationRequest();
     }
 
-    /**
-     * Sets the location request parameters.
-     */
     private void createLocationRequest() {
         mLocationRequest = new LocationRequest()
                 .setInterval(UPDATE_INTERVAL_IN_MILLISECONDS)

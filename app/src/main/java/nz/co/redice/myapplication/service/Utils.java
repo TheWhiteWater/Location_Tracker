@@ -44,7 +44,7 @@ public class Utils {
      * Stores the location updates state in SharedPreferences.
      * @param requestingLocationUpdates The location updates state.
      */
-    static void setRequestingLocationUpdates(Context context, boolean requestingLocationUpdates) {
+    static void setRequestingLocationUpdatesStatus(Context context, boolean requestingLocationUpdates) {
         PreferenceManager.getDefaultSharedPreferences(context)
                 .edit()
                 .putBoolean(KEY_REQUESTING_LOCATION_UPDATES, requestingLocationUpdates)

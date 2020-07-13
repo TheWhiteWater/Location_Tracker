@@ -50,7 +50,6 @@ import nz.co.redice.myapplication.service.LocationService;
 import nz.co.redice.myapplication.service.Utils;
 import nz.co.redice.myapplication.viewmodel.LocationViewModel;
 
-import static nz.co.redice.myapplication.service.Common.EXTRA_LOCATION;
 
 /**
  * The only activity in this sample.
@@ -125,7 +124,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         super.onCreate(savedInstanceState);
         mBinding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(mBinding.getRoot());
-
 
         // Check that the user hasn't revoked permissions by going to Settings.
         if (Utils.requestingLocationUpdates(this)) {
@@ -276,20 +274,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                             }
                         })
                         .show();
-            }
-        }
-    }
-
-    /**
-     * Receiver for broadcasts sent by {@link LocationService}.
-     */
-    private class MyReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Location location = intent.getParcelableExtra(EXTRA_LOCATION);
-            if (location != null) {
-                Toast.makeText(MainActivity.this, Utils.getLocationText(location),
-                        Toast.LENGTH_SHORT).show();
             }
         }
     }
