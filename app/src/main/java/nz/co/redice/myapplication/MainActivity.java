@@ -21,7 +21,6 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -38,15 +37,19 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 
 import com.google.android.material.snackbar.Snackbar;
 
-import nz.co.redice.myapplication.databinding.ActivityMainBinding;
-import nz.co.redice.myapplication.service.LocationUpdatesService;
-import nz.co.redice.myapplication.service.Utils;
+import java.util.List;
 
-import static nz.co.redice.myapplication.service.Common.ACTION_BROADCAST;
+import nz.co.redice.myapplication.databinding.ActivityMainBinding;
+import nz.co.redice.myapplication.repository.LocationModel;
+import nz.co.redice.myapplication.service.LocationService;
+import nz.co.redice.myapplication.service.Utils;
+import nz.co.redice.myapplication.viewmodel.LocationViewModel;
+
 import static nz.co.redice.myapplication.service.Common.EXTRA_LOCATION;
 
 /**
@@ -90,21 +93,22 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     // Used in checking for runtime permissions.
     private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 34;
 
-    // The BroadcastReceiver used to listen from broadcasts from the service.
-    private MyReceiver myReceiver;
-
     // A reference to the service used to get location updates.
-    private LocationUpdatesService mService = null;
+    private LocationService mService = null;
 
     // Tracks the bound state of the service.
     private boolean mBound = false;
+
+    private LocationViewModel mViewModel;
+    private ActivityMainBinding mBinding;
+
 
     // Monitors the state of the connection to the service.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            LocationUpdatesService.LocalBinder binder = (LocationUpdatesService.LocalBinder) service;
+            LocationService.LocalBinder binder = (LocationService.LocalBinder) service;
             mService = binder.getService();
             mBound = true;
         }
@@ -115,14 +119,13 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             mBound = false;
         }
     };
-    private ActivityMainBinding mBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        myReceiver = new MyReceiver();
         mBinding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(mBinding.getRoot());
+
 
         // Check that the user hasn't revoked permissions by going to Settings.
         if (Utils.requestingLocationUpdates(this)) {
@@ -130,6 +133,14 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 requestPermissions();
             }
         }
+
+        mViewModel = ViewModelProviders.of(this).get(LocationViewModel.class);
+        mViewModel.getAllLocations().observe(this, new Observer<List<LocationModel>>() {
+            @Override
+            public void onChanged(List<LocationModel> locationModels) {
+                Log.d(TAG, "onChanged: " + locationModels.size());
+            }
+        });
     }
 
     @Override
@@ -162,21 +173,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
         // Bind to the service. If the service is in foreground mode, this signals to the service
         // that since this activity is in the foreground, the service can exit foreground mode.
-        bindService(new Intent(this, LocationUpdatesService.class), mServiceConnection,
+        bindService(new Intent(this, LocationService.class), mServiceConnection,
                 Context.BIND_AUTO_CREATE);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        LocalBroadcastManager.getInstance(this).registerReceiver(myReceiver,
-                new IntentFilter(ACTION_BROADCAST));
-    }
-
-    @Override
-    protected void onPause() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(myReceiver);
-        super.onPause();
     }
 
     @Override
@@ -200,9 +198,11 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     private boolean checkPermissions() {
         return PackageManager.PERMISSION_GRANTED == ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION);
+        // TODO: 7/12/2020 COARSE LOCATION ???
     }
 
-    private void requestPermissions() {
+    // TODO: 7/12/2020 https://developer.android.com/training/permissions/requesting
+    public void requestPermissions() {
         boolean shouldProvideRationale =
                 ActivityCompat.shouldShowRequestPermissionRationale(this,
                         Manifest.permission.ACCESS_FINE_LOCATION);
@@ -235,6 +235,9 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     REQUEST_PERMISSIONS_REQUEST_CODE);
         }
     }
+
+
+    // TODO: 7/12/2020 https://developer.android.com/training/permissions/requesting
 
     /**
      * Callback received when a permissions request has been completed.
@@ -278,7 +281,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     }
 
     /**
-     * Receiver for broadcasts sent by {@link LocationUpdatesService}.
+     * Receiver for broadcasts sent by {@link LocationService}.
      */
     private class MyReceiver extends BroadcastReceiver {
         @Override

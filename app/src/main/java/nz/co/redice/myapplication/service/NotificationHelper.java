@@ -21,8 +21,7 @@ import static nz.co.redice.myapplication.service.Common.NOTIFICATION_ID;
 class NotificationHelper {
 
     private Context mContext;
-    private NotificationManagerCompat mNotificationManager;
-
+    NotificationManagerCompat mNotificationManager;
 
 
     public NotificationHelper(Context context) {
@@ -39,6 +38,7 @@ class NotificationHelper {
             NotificationChannel mChannel =
                     new NotificationChannel(CHANNEL_ID, name, NotificationManager.IMPORTANCE_DEFAULT);
 
+            mChannel.setSound(null, null);
             // Set the Notification Channel for the Notification Manager.
             mNotificationManager.createNotificationChannel(mChannel);
         }
@@ -49,7 +49,7 @@ class NotificationHelper {
      * Returns the {@link NotificationCompat} used as part of the foreground service.
      */
     Notification getNotification() {
-        Intent intent = new Intent(mContext, LocationUpdatesService.class);
+        Intent intent = new Intent(mContext, LocationService.class);
 
 
         // Extra to help us figure out if we arrived in onStartCommand via the notification or not.
@@ -87,5 +87,6 @@ class NotificationHelper {
     void showNotification() {
         mNotificationManager.notify(NOTIFICATION_ID, getNotification());
     }
+
 
 }

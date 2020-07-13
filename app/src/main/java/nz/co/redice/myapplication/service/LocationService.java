@@ -24,24 +24,9 @@ import android.content.res.Configuration;
 import android.location.Location;
 import android.os.Binder;
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.IBinder;
-import android.os.Looper;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-
-import static nz.co.redice.myapplication.service.Common.ACTION_BROADCAST;
-import static nz.co.redice.myapplication.service.Common.EXTRA_LOCATION;
 import static nz.co.redice.myapplication.service.Common.EXTRA_STARTED_FROM_NOTIFICATION;
 import static nz.co.redice.myapplication.service.Common.NOTIFICATION_ID;
 
@@ -59,27 +44,12 @@ import static nz.co.redice.myapplication.service.Common.NOTIFICATION_ID;
  * continue. When the activity comes back to the foreground, the foreground service stops, and the
  * notification associated with that service is removed.
  */
-public class LocationUpdatesService extends Service {
+public class LocationService extends Service implements LocationUpdateHelper.OnNewLocationListener {
 
 
-
-    private static final String TAG = LocationUpdatesService.class.getSimpleName();
-
-
+    private static final String TAG = LocationService.class.getSimpleName();
 
     private final IBinder mBinder = new LocalBinder();
-
-    /**
-     * The desired interval for location updates. Inexact. Updates may be more or less frequent.
-     */
-    private static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
-
-    /**
-     * The fastest rate for active location updates. Updates will never be more frequent
-     * than this value.
-     */
-    private static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
-            UPDATE_INTERVAL_IN_MILLISECONDS / 2;
 
 
     /**
@@ -89,53 +59,19 @@ public class LocationUpdatesService extends Service {
      */
     private boolean mChangingConfiguration = false;
 
-
-    /**
-     * Contains parameters used by {@link com.google.android.gms.location.FusedLocationProviderApi}.
-     */
-    private LocationRequest mLocationRequest;
-
-    /**
-     * Provides access to the Fused Location Provider API.
-     */
-    private FusedLocationProviderClient mFusedLocationClient;
-
-    /**
-     * Callback for changes in location.
-     */
-    private LocationCallback mLocationCallback;
-
-    private Handler mServiceHandler;
-
-    /**
-     * The current location.
-     */
-    private Location mLocation;
-
     private NotificationHelper mNotificationHelper;
+    private LocationUpdateHelper mLocationHelper;
 
-    public LocationUpdatesService() {
+    public LocationService() {
     }
 
     @Override
     public void onCreate() {
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        mLocationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                super.onLocationResult(locationResult);
-                onNewLocation(locationResult.getLastLocation());
-            }
-        };
-
-        createLocationRequest();
-        getLastLocation();
-
-        HandlerThread handlerThread = new HandlerThread(TAG);
-        handlerThread.start();
-        mServiceHandler = new Handler(handlerThread.getLooper());
+        mLocationHelper = new LocationUpdateHelper(this, this);
         mNotificationHelper = new NotificationHelper(this);
+
+        getLastLocation();
 
     }
 
@@ -193,10 +129,10 @@ public class LocationUpdatesService extends Service {
             Log.i(TAG, "Starting foreground service");
             /*
             // TODO(developer). If targeting O, use the following code.
-            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.O) {
-                mNotificationManager.startServiceInForeground(new Intent(this,
-                        LocationUpdatesService.class), NOTIFICATION_ID, getNotification());
-            } else {
+//            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.O) {
+//                mNotificationManager.startServiceInForeground(new Intent(this,
+//                        LocationUpdatesService.class), NOTIFICATION_ID, getNotification());
+//            } else {
                 startForeground(NOTIFICATION_ID, getNotification());
             }
              */
@@ -205,10 +141,6 @@ public class LocationUpdatesService extends Service {
         return true; // Ensures onRebind() is called when a client re-binds.
     }
 
-    @Override
-    public void onDestroy() {
-        mServiceHandler.removeCallbacksAndMessages(null);
-    }
 
     /**
      * Makes a request for location updates. Note that in this sample we merely log the
@@ -217,10 +149,9 @@ public class LocationUpdatesService extends Service {
     public void requestLocationUpdates() {
         Log.i(TAG, "Requesting location updates");
         Utils.setRequestingLocationUpdates(this, true);
-        startService(new Intent(getApplicationContext(), LocationUpdatesService.class));
+        startService(new Intent(getApplicationContext(), LocationService.class));
         try {
-            mFusedLocationClient.requestLocationUpdates(mLocationRequest,
-                    mLocationCallback, Looper.myLooper());
+            mLocationHelper.launchLocationUpdates();
         } catch (SecurityException unlikely) {
             Utils.setRequestingLocationUpdates(this, false);
             Log.e(TAG, "Lost location permission. Could not request updates. " + unlikely);
@@ -234,7 +165,7 @@ public class LocationUpdatesService extends Service {
     public void removeLocationUpdates() {
         Log.i(TAG, "Removing location updates");
         try {
-            mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+            mLocationHelper.cancelLocationUpdates();
             Utils.setRequestingLocationUpdates(this, false);
             stopSelf();
         } catch (SecurityException unlikely) {
@@ -246,55 +177,31 @@ public class LocationUpdatesService extends Service {
 
     private void getLastLocation() {
         try {
-            mFusedLocationClient.getLastLocation()
-                    .addOnCompleteListener(new OnCompleteListener<Location>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Location> task) {
-                            if (task.isSuccessful() && task.getResult() != null) {
-                                mLocation = task.getResult();
-                            } else {
-                                Log.w(TAG, "Failed to get location.");
-                            }
-                        }
-                    });
+//            mLocation = mLocationHelper.getLastKnownLocation();
+            mLocationHelper.getLastKnownLocation();
         } catch (SecurityException unlikely) {
             Log.e(TAG, "Lost location permission." + unlikely);
         }
     }
 
-    private void onNewLocation(Location location) {
+
+    public void onNewLocation(Location location) {
         Log.i(TAG, "New location: " + location);
-
-        mLocation = location;
-
-        // Notify anyone listening for broadcasts about the new location.
-        Intent intent = new Intent(ACTION_BROADCAST);
-        intent.putExtra(EXTRA_LOCATION, location);
-        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
-
+        // TODO: 7/12/2020 save locations into database
         // Update notification content if running as a foreground service.
         if (serviceIsRunningInForeground(this)) {
             mNotificationHelper.showNotification();
         }
     }
 
-    /**
-     * Sets the location request parameters.
-     */
-    private void createLocationRequest() {
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
-        mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-    }
 
     /**
      * Class used for the client Binder.  Since this service runs in the same process as its
      * clients, we don't need to deal with IPC.
      */
     public class LocalBinder extends Binder {
-        public LocationUpdatesService getService() {
-            return LocationUpdatesService.this;
+        public LocationService getService() {
+            return LocationService.this;
         }
     }
 
