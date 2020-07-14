@@ -22,11 +22,6 @@ public class LocationViewModel extends ViewModel {
     private final SavedStateHandle savedStateHandle;
     private LiveData<List<LocationModel>> allLocations;
 
-    public void insertLocation(Location location) {
-        mRepository.insert(new LocationModel(System.currentTimeMillis(),
-                new CustomLocation(location.getLatitude(), location.getLongitude())));
-    }
-
     @ViewModelInject
     public LocationViewModel(Repository repository,
                              @Assisted SavedStateHandle savedStateHandle) {
