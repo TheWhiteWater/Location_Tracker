@@ -51,11 +51,12 @@ public class LocationUpdateHelper {
     }
 
     private void onNewLocation(Location lastLocation) {
-        Toast.makeText(mContext, lastLocation.toString(), Toast.LENGTH_SHORT).show();
 
+        Toast.makeText(mContext, lastLocation.toString(), Toast.LENGTH_SHORT).show();
         LocationModel locationModel = new LocationModel(System.currentTimeMillis(),
                 new CustomLocation(lastLocation.getLatitude(), lastLocation.getLongitude()));
-//        mRepository.insert(lastLocation);
+//        mRepository.insert(locationModel);
+
     }
 
     private void createLocationRequest() {

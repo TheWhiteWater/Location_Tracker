@@ -72,7 +72,6 @@ public class LocationService extends Service {
 
     @Override
     public void onCreate() {
-
         mLocationHelper = new LocationUpdateHelper(this);
         mNotificationHelper = new NotificationHelper(this);
         mLocationHelper.getLastKnownLocation(); //???
@@ -153,6 +152,8 @@ public class LocationService extends Service {
     public void removeLocationUpdates() {
         Log.i(TAG, "Removing location updates");
         mLocationHelper.cancelLocationUpdates();
+        Utils.setRequestingLocationUpdatesStatus(this, false);
+        stopSelf();
     }
 
     /**
