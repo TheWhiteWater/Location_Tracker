@@ -1,21 +1,24 @@
 package nz.co.redice.myapplication.repository;
 
-import android.app.Application;
+import android.content.Context;
 
 import androidx.lifecycle.LiveData;
-
 import java.util.List;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import io.reactivex.schedulers.Schedulers;
 
+@Singleton
 public class Repository {
 
     private LocationDao mDao;
     private LiveData<List<LocationModel>> allLocations;
 
-    public Repository(Application application) {
-        Database database = Database.getInstance(application);
-        mDao = database.getDao();
+    @Inject
+    public Repository(LocationDao dao) {
+        mDao = dao;
         allLocations = mDao.getAllLocations();
     }
 

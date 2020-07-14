@@ -21,11 +21,13 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.location.Location;
 import android.os.Binder;
-import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
+
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
 
 import static nz.co.redice.myapplication.service.Common.EXTRA_STARTED_FROM_NOTIFICATION;
 import static nz.co.redice.myapplication.service.Common.NOTIFICATION_ID;
@@ -44,7 +46,9 @@ import static nz.co.redice.myapplication.service.Common.NOTIFICATION_ID;
  * continue. When the activity comes back to the foreground, the foreground service stops, and the
  * notification associated with that service is removed.
  */
-public class LocationService extends Service implements LocationUpdateHelper.OnNewLocationListener {
+
+@AndroidEntryPoint
+public class LocationService extends Service {
 
 
     private static final String TAG = LocationService.class.getSimpleName();
@@ -62,17 +66,16 @@ public class LocationService extends Service implements LocationUpdateHelper.OnN
     private NotificationHelper mNotificationHelper;
     private LocationUpdateHelper mLocationHelper;
 
+
     public LocationService() {
     }
 
     @Override
     public void onCreate() {
 
-        mLocationHelper = new LocationUpdateHelper(this, this);
+        mLocationHelper = new LocationUpdateHelper(this);
         mNotificationHelper = new NotificationHelper(this);
-
-        getLastLocation();
-
+        mLocationHelper.getLastKnownLocation(); //???
     }
 
     @Override
@@ -127,15 +130,6 @@ public class LocationService extends Service implements LocationUpdateHelper.OnN
         // do nothing. Otherwise, we make this service a foreground service.
         if (!mChangingConfiguration && Utils.requestingLocationUpdates(this)) {
             Log.i(TAG, "Starting foreground service");
-            /*
-            // TODO(developer). If targeting O, use the following code.
-//            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.O) {
-//                mNotificationManager.startServiceInForeground(new Intent(this,
-//                        LocationUpdatesService.class), NOTIFICATION_ID, getNotification());
-//            } else {
-                startForeground(NOTIFICATION_ID, getNotification());
-            }
-             */
             startForeground(NOTIFICATION_ID, mNotificationHelper.getNotification());
         }
         return true; // Ensures onRebind() is called when a client re-binds.
@@ -148,52 +142,18 @@ public class LocationService extends Service implements LocationUpdateHelper.OnN
      */
     public void requestLocationUpdates() {
         Log.i(TAG, "Requesting location updates");
-        Utils.setRequestingLocationUpdates(this, true);
+        Utils.setRequestingLocationUpdatesStatus(this, true);
         startService(new Intent(getApplicationContext(), LocationService.class));
-        try {
-            mLocationHelper.launchLocationUpdates();
-        } catch (SecurityException unlikely) {
-            Utils.setRequestingLocationUpdates(this, false);
-            Log.e(TAG, "Lost location permission. Could not request updates. " + unlikely);
-        }
-    }
-
-    /**
-     * Removes location updates. Note that in this sample we merely log the
-     * {@link SecurityException}.
-     */
-    public void removeLocationUpdates() {
-        Log.i(TAG, "Removing location updates");
-        try {
-            mLocationHelper.cancelLocationUpdates();
-            Utils.setRequestingLocationUpdates(this, false);
-            stopSelf();
-        } catch (SecurityException unlikely) {
-            Utils.setRequestingLocationUpdates(this, true);
-            Log.e(TAG, "Lost location permission. Could not remove updates. " + unlikely);
-        }
-    }
-
-
-    private void getLastLocation() {
-        try {
-//            mLocation = mLocationHelper.getLastKnownLocation();
-            mLocationHelper.getLastKnownLocation();
-        } catch (SecurityException unlikely) {
-            Log.e(TAG, "Lost location permission." + unlikely);
-        }
-    }
-
-
-    public void onNewLocation(Location location) {
-        Log.i(TAG, "New location: " + location);
-        // TODO: 7/12/2020 save locations into database
-        // Update notification content if running as a foreground service.
+        mLocationHelper.launchLocationUpdates();
         if (serviceIsRunningInForeground(this)) {
             mNotificationHelper.showNotification();
         }
     }
 
+    public void removeLocationUpdates() {
+        Log.i(TAG, "Removing location updates");
+        mLocationHelper.cancelLocationUpdates();
+    }
 
     /**
      * Class used for the client Binder.  Since this service runs in the same process as its
