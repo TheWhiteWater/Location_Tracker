@@ -17,14 +17,12 @@
 package nz.co.redice.myapplication;
 
 import android.Manifest;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -32,18 +30,21 @@ import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
 import nz.co.redice.myapplication.databinding.ActivityMainBinding;
 import nz.co.redice.myapplication.repository.LocationModel;
 import nz.co.redice.myapplication.service.LocationService;
@@ -86,6 +87,8 @@ import nz.co.redice.myapplication.viewmodel.LocationViewModel;
  * activity from the notification. The user can also remove location updates directly from the
  * notification. This dismisses the notification and stops the service.
  */
+
+@AndroidEntryPoint
 public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -132,7 +135,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             }
         }
 
-        mViewModel = ViewModelProviders.of(this).get(LocationViewModel.class);
+
+        mViewModel = new ViewModelProvider(this).get(LocationViewModel.class);
         mViewModel.getAllLocations().observe(this, new Observer<List<LocationModel>>() {
             @Override
             public void onChanged(List<LocationModel> locationModels) {
