@@ -25,9 +25,9 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 
-import javax.inject.Inject;
-
-import dagger.hilt.android.AndroidEntryPoint;
+import nz.co.redice.myapplication.di.MyApplication;
+import nz.co.redice.myapplication.repository.LocationDao;
+import nz.co.redice.myapplication.repository.Repository;
 
 import static nz.co.redice.myapplication.service.Common.EXTRA_STARTED_FROM_NOTIFICATION;
 import static nz.co.redice.myapplication.service.Common.NOTIFICATION_ID;
@@ -46,14 +46,11 @@ import static nz.co.redice.myapplication.service.Common.NOTIFICATION_ID;
  * continue. When the activity comes back to the foreground, the foreground service stops, and the
  * notification associated with that service is removed.
  */
-
-@AndroidEntryPoint
 public class LocationService extends Service {
 
-
     private static final String TAG = LocationService.class.getSimpleName();
-
     private final IBinder mBinder = new LocalBinder();
+    private Repository mRepository;
 
 
     /**
@@ -66,13 +63,14 @@ public class LocationService extends Service {
     private NotificationHelper mNotificationHelper;
     private LocationUpdateHelper mLocationHelper;
 
-
     public LocationService() {
     }
 
     @Override
     public void onCreate() {
-        mLocationHelper = new LocationUpdateHelper(this);
+        LocationDao dao = ((MyApplication)getApplication()).getDatabase().getDao();
+        mRepository = new Repository(dao);
+        mLocationHelper = new LocationUpdateHelper(this, mRepository);
         mNotificationHelper = new NotificationHelper(this);
         mLocationHelper.getLastKnownLocation(); //???
     }
@@ -143,7 +141,12 @@ public class LocationService extends Service {
         Log.i(TAG, "Requesting location updates");
         Utils.setRequestingLocationUpdatesStatus(this, true);
         startService(new Intent(getApplicationContext(), LocationService.class));
-        mLocationHelper.launchLocationUpdates();
+        try {
+            mLocationHelper.launchLocationUpdates();
+        } catch (SecurityException unlikely) {
+            Utils.setRequestingLocationUpdatesStatus(this, false);
+            Log.e(TAG, "Lost location permission. Could not request updates. " + unlikely);
+        }
         if (serviceIsRunningInForeground(this)) {
             mNotificationHelper.showNotification();
         }
