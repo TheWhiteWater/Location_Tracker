@@ -1,13 +1,13 @@
 package nz.co.redice.myapplication.repository;
 
-import android.content.Context;
-
 import androidx.lifecycle.LiveData;
+
 import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
 @Singleton
@@ -25,12 +25,14 @@ public class Repository {
     public void deleteAllLocations() {
         mDao.deleteAllLocations()
                 .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe();
     }
 
     public void delete(int uuid) {
         mDao.deleteLocation(uuid)
                 .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe();
     }
 

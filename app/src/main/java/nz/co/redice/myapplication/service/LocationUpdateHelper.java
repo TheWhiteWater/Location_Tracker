@@ -3,7 +3,6 @@ package nz.co.redice.myapplication.service;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.location.Location;
-import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -16,8 +15,6 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-
-import javax.inject.Inject;
 
 import nz.co.redice.myapplication.repository.CustomLocation;
 import nz.co.redice.myapplication.repository.LocationModel;
@@ -32,12 +29,12 @@ public class LocationUpdateHelper {
     private LocationRequest mLocationRequest;
     private FusedLocationProviderClient mFusedLocationClient;
     private LocationCallback mLocationCallback;
-    @Inject Repository mRepository;
+    private Repository mRepository;
 
 
-
-    public LocationUpdateHelper(Context context) {
+    public LocationUpdateHelper(Context context, Repository repository) {
         mContext = context;
+        mRepository = repository;
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(mContext);
 
         mLocationCallback = new LocationCallback() {
@@ -52,11 +49,9 @@ public class LocationUpdateHelper {
 
     private void onNewLocation(Location lastLocation) {
 
-        Toast.makeText(mContext, lastLocation.toString(), Toast.LENGTH_SHORT).show();
         LocationModel locationModel = new LocationModel(System.currentTimeMillis(),
                 new CustomLocation(lastLocation.getLatitude(), lastLocation.getLongitude()));
-//        mRepository.insert(locationModel);
-
+        mRepository.insert(locationModel);
     }
 
     private void createLocationRequest() {
@@ -68,7 +63,8 @@ public class LocationUpdateHelper {
 
     @SuppressLint("MissingPermission")
     void launchLocationUpdates() {
-        mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, Looper.myLooper());
+
+        mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, null);
     }
 
     void cancelLocationUpdates() {
@@ -78,7 +74,6 @@ public class LocationUpdateHelper {
     @SuppressLint("MissingPermission")
     Location getLastKnownLocation() {
         final Location[] location = new Location[1];
-
         mFusedLocationClient.getLastLocation()
                 .addOnCompleteListener(new OnCompleteListener<Location>() {
                     @Override

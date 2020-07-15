@@ -8,6 +8,7 @@ import androidx.room.Query;
 
 import java.util.List;
 
+import io.reactivex.Completable;
 import io.reactivex.Single;
 
 @Dao
@@ -17,7 +18,7 @@ public interface LocationDao {
     LiveData<List<LocationModel>> getAllLocations();
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    Single<Void> insertLocation(LocationModel locationModel);
+    Completable insertLocation(LocationModel locationModel);
 
     @Query("DELETE FROM locations WHERE uuid = :uuid")
     Single<Void> deleteLocation(int uuid);

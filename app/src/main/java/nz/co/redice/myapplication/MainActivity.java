@@ -37,13 +37,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.lifecycle.ViewModelProviders;
 
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
-
-import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
 import nz.co.redice.myapplication.databinding.ActivityMainBinding;
@@ -138,12 +135,14 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
 
         mViewModel = new ViewModelProvider(this).get(LocationViewModel.class);
-        mViewModel.getAllLocations().observe(this, new Observer<List<LocationModel>>() {
+        mViewModel.getAllLocations().observe(this,  new Observer<List<LocationModel>>() {
             @Override
             public void onChanged(List<LocationModel> locationModels) {
                 Log.d(TAG, "onChanged: " + locationModels.size());
+                Toast.makeText(MainActivity.this, "" + locationModels.size(), Toast.LENGTH_SHORT).show();
             }
         });
+
     }
 
     @Override
