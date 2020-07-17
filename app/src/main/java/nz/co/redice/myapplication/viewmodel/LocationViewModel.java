@@ -1,29 +1,20 @@
 package nz.co.redice.myapplication.viewmodel;
 
-import androidx.hilt.Assisted;
-import androidx.hilt.lifecycle.ViewModelInject;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.SavedStateHandle;
 import androidx.lifecycle.ViewModel;
 
 import java.util.List;
 
-import nz.co.redice.myapplication.repository.LocationModel;
+import nz.co.redice.myapplication.repository.models.LocationModel;
 import nz.co.redice.myapplication.repository.Repository;
 
 public class LocationViewModel extends ViewModel {
 
     private Repository mRepository;
-    private SavedStateHandle savedStateHandle;
-    private LiveData<List<LocationModel>> allLocations;
 
 
-    @ViewModelInject
-    public LocationViewModel(Repository repository,
-                             @Assisted SavedStateHandle savedStateHandle) {
+    public LocationViewModel(Repository repository) {
         mRepository = repository;
-        this.savedStateHandle = savedStateHandle;
-        allLocations = mRepository.getAllLocations();
     }
 
     public void deleteLocation(int uuid) {
@@ -35,8 +26,16 @@ public class LocationViewModel extends ViewModel {
     }
 
     public LiveData<List<LocationModel>> getAllLocations() {
-        return allLocations;
+
+        return mRepository.getAllLocations();
     }
 
+    public LiveData<LocationModel> getLastKnowLocation() {
+        return mRepository.getLastLocation();
+    }
+
+    public LiveData<Integer> getDatabaseSize() {
+        return mRepository.getNumberOfEntries();
+    }
 
 }

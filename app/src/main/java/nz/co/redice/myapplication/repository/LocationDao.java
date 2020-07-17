@@ -10,6 +10,7 @@ import java.util.List;
 
 import io.reactivex.Completable;
 import io.reactivex.Single;
+import nz.co.redice.myapplication.repository.models.LocationModel;
 
 @Dao
 public interface LocationDao {
@@ -25,5 +26,11 @@ public interface LocationDao {
 
     @Query("DELETE FROM locations")
     Single<Void> deleteAllLocations();
+
+    @Query("SELECT * FROM locations ORDER BY uuid DESC LIMIT 1")
+    LiveData<LocationModel> getLastLocation();
+
+    @Query("SELECT COALESCE(MAX(uuid)+1, 0) FROM locations")
+    LiveData<Integer> getDatabaseEntries();
 
 }

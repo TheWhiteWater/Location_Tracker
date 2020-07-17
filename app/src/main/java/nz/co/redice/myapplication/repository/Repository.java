@@ -4,19 +4,15 @@ import androidx.lifecycle.LiveData;
 
 import java.util.List;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
+import nz.co.redice.myapplication.repository.models.LocationModel;
 
-@Singleton
 public class Repository {
 
     private LocationDao mDao;
     private LiveData<List<LocationModel>> allLocations;
 
-    @Inject
     public Repository(LocationDao dao) {
         mDao = dao;
         allLocations = mDao.getAllLocations();
@@ -44,6 +40,14 @@ public class Repository {
 
     public LiveData<List<LocationModel>> getAllLocations() {
         return allLocations;
+    }
+
+    public LiveData<LocationModel> getLastLocation() {
+        return mDao.getLastLocation();
+    }
+
+    public LiveData<Integer> getNumberOfEntries() {
+        return mDao.getDatabaseEntries();
     }
 
 }

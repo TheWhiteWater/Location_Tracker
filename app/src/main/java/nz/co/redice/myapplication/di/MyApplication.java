@@ -6,11 +6,14 @@ import androidx.room.Room;
 
 import dagger.hilt.android.HiltAndroidApp;
 import nz.co.redice.myapplication.repository.Database;
+import nz.co.redice.myapplication.repository.LocationDao;
+import nz.co.redice.myapplication.repository.Repository;
 
-@HiltAndroidApp
 public class MyApplication extends Application {
 
     private Database mDatabase;
+    private LocationDao mDao;
+    private Repository mRepository;
 
     @Override
     public void onCreate() {
@@ -18,11 +21,21 @@ public class MyApplication extends Application {
 
         mDatabase = Room.databaseBuilder(this,
                 Database.class, "location_database")
-                .fallbackToDestructiveMigration()
                 .build();
+
+        mRepository = new Repository(mDatabase.getDao());
+    }
+
+
+    public LocationDao getDao() {
+        return mDatabase.getDao();
     }
 
     public Database getDatabase() {
         return mDatabase;
+    }
+
+    public Repository getRepository() {
+        return mRepository;
     }
 }

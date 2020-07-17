@@ -26,7 +26,6 @@ import android.os.IBinder;
 import android.util.Log;
 
 import nz.co.redice.myapplication.di.MyApplication;
-import nz.co.redice.myapplication.repository.LocationDao;
 import nz.co.redice.myapplication.repository.Repository;
 
 import static nz.co.redice.myapplication.service.Common.EXTRA_STARTED_FROM_NOTIFICATION;
@@ -68,9 +67,8 @@ public class LocationService extends Service {
 
     @Override
     public void onCreate() {
-        LocationDao dao = ((MyApplication)getApplication()).getDatabase().getDao();
-        mRepository = new Repository(dao);
-        mLocationHelper = new LocationUpdateHelper(this, mRepository);
+        mRepository = new Repository(((MyApplication)getApplication()).getDao());
+        mLocationHelper = new LocationUpdateHelper(this, ((MyApplication)getApplication()).getRepository());
         mNotificationHelper = new NotificationHelper(this);
         mLocationHelper.getLastKnownLocation(); //???
     }

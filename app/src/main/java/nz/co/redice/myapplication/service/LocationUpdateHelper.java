@@ -3,8 +3,8 @@ package nz.co.redice.myapplication.service;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.location.Location;
+import android.os.Looper;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -16,8 +16,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
-import nz.co.redice.myapplication.repository.CustomLocation;
-import nz.co.redice.myapplication.repository.LocationModel;
+import nz.co.redice.myapplication.repository.models.LocationModel;
 import nz.co.redice.myapplication.repository.Repository;
 
 public class LocationUpdateHelper {
@@ -47,10 +46,8 @@ public class LocationUpdateHelper {
         createLocationRequest();
     }
 
-    private void onNewLocation(Location lastLocation) {
-
-        LocationModel locationModel = new LocationModel(System.currentTimeMillis(),
-                new CustomLocation(lastLocation.getLatitude(), lastLocation.getLongitude()));
+    private void onNewLocation(Location location) {
+        LocationModel locationModel = new LocationModel(location);
         mRepository.insert(locationModel);
     }
 
@@ -63,8 +60,7 @@ public class LocationUpdateHelper {
 
     @SuppressLint("MissingPermission")
     void launchLocationUpdates() {
-
-        mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, null);
+        mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, Looper.myLooper());
     }
 
     void cancelLocationUpdates() {
