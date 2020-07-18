@@ -60,7 +60,7 @@ class NotificationHelper {
         PendingIntent activityPendingIntent = PendingIntent.getActivity(mContext, 0,
                 new Intent(mContext, MainActivity.class), 0);
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext, CHANNEL_ID)
                 .addAction(R.drawable.ic_launch, mContext.getString(R.string.launch_activity),
                         activityPendingIntent)
                 .addAction(R.drawable.ic_cancel, mContext.getString(R.string.cancel_location_updates),

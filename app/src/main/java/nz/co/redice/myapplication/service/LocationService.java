@@ -49,7 +49,6 @@ public class LocationService extends Service {
 
     private static final String TAG = LocationService.class.getSimpleName();
     private final IBinder mBinder = new LocalBinder();
-    private Repository mRepository;
 
 
     /**
@@ -67,7 +66,6 @@ public class LocationService extends Service {
 
     @Override
     public void onCreate() {
-        mRepository = new Repository(((MyApplication)getApplication()).getDao());
         mLocationHelper = new LocationUpdateHelper(this, ((MyApplication)getApplication()).getRepository());
         mNotificationHelper = new NotificationHelper(this);
         mLocationHelper.getLastKnownLocation(); //???

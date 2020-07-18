@@ -22,6 +22,8 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
+import androidx.navigation.NavDirections;
+import androidx.navigation.Navigation;
 
 import com.google.android.material.snackbar.Snackbar;
 
@@ -71,8 +73,6 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
         super.onCreate(savedInstanceState);
         PreferenceManager.getDefaultSharedPreferences(getContext())
                 .registerOnSharedPreferenceChangeListener(this);
-
-
     }
 
     @Override
@@ -88,23 +88,7 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
             }
         }
 
-        mBinding.launchLocationUpdatesButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!checkPermissions()) {
-                    requestPermissions();
-                } else {
-                    mService.requestLocationUpdates();
-                }
-            }
-        });
-
-        mBinding.cancelLocationUpdatesButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mService.removeLocationUpdates();
-            }
-        });
+        setButtonListeners();
 
         // Restore the state of the buttons when the activity (re)launches.
         setButtonsState(Utils.requestingLocationUpdates(getContext()));
@@ -116,22 +100,34 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
 
 
         mViewModel = new LocationViewModel(((MyApplication) getActivity().getApplication()).getRepository());
-//        mViewModel.getDatabaseSize().observeForever(new Observer<Integer>() {
-//            @Override
-//            public void onChanged(Integer integer) {
-//                Toast.makeText(MainActivity.this, "" + integer, Toast.LENGTH_SHORT).show();
-//            }
-//        });
+
+
         mViewModel.getLastKnowLocation().observe(getViewLifecycleOwner(), new Observer<LocationModel>() {
             @Override
             public void onChanged(LocationModel model) {
                 if (model != null)
-                    Toast.makeText(getContext(), "" + model.toString(), Toast.LENGTH_SHORT).show();
+                    mBinding.mainDisplay.setText(model.getAddress());
             }
         });
 
-
         return view;
+    }
+
+    private void setButtonListeners() {
+        mBinding.launchLocationUpdatesButton.setOnClickListener(v -> {
+            if (!checkPermissions()) {
+                requestPermissions();
+            } else {
+                mService.requestLocationUpdates();
+            }
+        });
+
+        mBinding.cancelLocationUpdatesButton.setOnClickListener(view1 -> mService.removeLocationUpdates());
+
+        mBinding.historyButton.setOnClickListener(v -> {
+            NavDirections action = HomeFragmentDirections.actionHomeFragmentToListFragment();
+            Navigation.findNavController(v).navigate(action);
+        });
     }
 
     @Override
@@ -256,5 +252,11 @@ public class HomeFragment extends Fragment implements SharedPreferences.OnShared
             mBinding.launchLocationUpdatesButton.setEnabled(true);
             mBinding.cancelLocationUpdatesButton.setEnabled(false);
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mBinding = null;
     }
 }

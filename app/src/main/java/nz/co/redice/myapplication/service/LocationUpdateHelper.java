@@ -2,6 +2,8 @@ package nz.co.redice.myapplication.service;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Looper;
 import android.util.Log;
@@ -15,6 +17,11 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 import nz.co.redice.myapplication.repository.models.LocationModel;
 import nz.co.redice.myapplication.repository.Repository;
@@ -46,8 +53,20 @@ public class LocationUpdateHelper {
         createLocationRequest();
     }
 
+    private String getAddress(Location location) {
+        Geocoder geocoder = new Geocoder(mContext, Locale.getDefault());
+        List<Address> addresses = new ArrayList<>();
+        try {
+            addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+        } catch (IOException e) {
+            Log.e(this.getClass().getSimpleName(), "Cannot find Address.");
+            e.printStackTrace();
+        }
+        return addresses.get(0) == null ? "Address is not found" : String.valueOf(addresses.get(0).getAddressLine(0));
+    }
+
     private void onNewLocation(Location location) {
-        LocationModel locationModel = new LocationModel(location);
+        LocationModel locationModel = new LocationModel(location, getAddress(location));
         mRepository.insert(locationModel);
     }
 

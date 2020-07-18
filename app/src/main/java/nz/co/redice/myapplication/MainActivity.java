@@ -16,40 +16,15 @@
 
 package nz.co.redice.myapplication;
 
-import android.Manifest;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
-import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.IBinder;
-import android.preference.PreferenceManager;
-import android.provider.Settings;
-import android.util.Log;
-import android.view.View;
-import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.lifecycle.Observer;
-
-import com.google.android.material.snackbar.Snackbar;
 
 import nz.co.redice.myapplication.databinding.ActivityMainBinding;
-import nz.co.redice.myapplication.di.MyApplication;
-import nz.co.redice.myapplication.repository.models.LocationModel;
-import nz.co.redice.myapplication.service.LocationService;
-import nz.co.redice.myapplication.service.Utils;
-import nz.co.redice.myapplication.viewmodel.LocationViewModel;
 
-public class MainActivity extends AppCompatActivity  {
+public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding mBinding;
-
 
 
     @Override
@@ -59,8 +34,6 @@ public class MainActivity extends AppCompatActivity  {
         setContentView(mBinding.getRoot());
 
     }
-
-
 
 
 }
